@@ -1,0 +1,56 @@
+int posGradi[5] = {80,150,10,80,60}; //array inizializzato
+
+RCC->APB1ENR |= RCC_APB1ENR_TIM3EN; //abilitazzione timer
+
+void setServo(const int Servo, int gradi, int velocity){
+	char tempStr[10];
+	gradi = limite (Servo, gradi);
+	int movimento = gradi;
+	movimento -= posGradi[Servo];
+	
+	//invio sulla seriale del servo
+	sprintf(tempStr,"%d", servo); 
+  	strcpy(stringBuffer, tempStr);
+  	serialPrintString(stringBuffer);
+	
+	if(velocity <= 0) velocity = 1;
+
+	//invio sulla seriale della velocità	
+	sprintf(tempStr,"%d", velocity); 
+ 	strcpy(stringBuffer, tempStr);
+  	serialPrintString(stringBuffer); 
+	
+	if(movimento < 0){	
+
+		for(; posGradi[Servo] >= gradi; posGradi[Servo]-=2){
+
+  			sprintf(tempStr,"%d", posGradi[Servo]); 
+  			strcpy(stringBuffer, tempStr);
+  			serialPrintString(stringBuffer);
+			delay(40/velocity);
+ 		 }
+		return;
+	}
+
+ 	for(; posGradi[Servo] <= gradi; posGradi[Servo]+=2){
+
+  			sprintf(tempStr,"%d", posGradi[Servo]); 
+  			strcpy(stringBuffer, tempStr);
+  			serialPrintString(stringBuffer);
+			delay(40/velocity);
+ 		 }
+
+}
+
+void delay(uint32_t time){
+	
+	temp= (time*100000)125;
+
+	TIM3->ARR = temp; //settaggio valore timer
+	TIM3->CNT = 0; //azzero il conteggio per precauzione
+
+	TIM3->CR1 |= TIM_CR1_CEN;
+
+	while((TIM3->SR & TIM_SR_UIF) != TIM_SR_UIF);
+	TIM3->SR &= ⁓TIM_SR_UIF;
+}
